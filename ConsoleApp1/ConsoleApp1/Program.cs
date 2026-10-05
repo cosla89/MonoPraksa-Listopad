@@ -1,8 +1,31 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
-Console.WriteLine("Ho, Wld!");
+﻿using System;
 
-Console.WriteLine("World!");
+ElektricniAutomobil auto = new ElektricniAutomobil();
+auto.Marka = "Tesla";
 
-Console.WriteLine("Hello, ");
+Console.WriteLine(auto.Marka);
+Console.WriteLine(auto.Baterija);
+
+auto.Pokreni();
+
+public class Automobil
+{
+    public string Marka { get; set; } = "";
+
+    public virtual void Pokreni()
+    {
+        Console.WriteLine("Pokrećem motor.");
+    }
+}
+
+public class ElektricniAutomobil : Automobil
+{
+    public int Baterija { get; set; } = 100;
+
+    public override void Pokreni()
+    {
+        Console.WriteLine("Pokrećem auto na struju");
+    }
+}
+
 
