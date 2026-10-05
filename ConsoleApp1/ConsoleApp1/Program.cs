@@ -1,30 +1,37 @@
 ﻿using System;
 
-ElektricniAutomobil auto = new ElektricniAutomobil();
-auto.Marka = "Tesla";
+Građevina građevina = new Građevina();  
+Zgrada zgrada = new Zgrada();
+zgrada.Adresa = "Antuna Branka Šimića 10";
+IInformacije informacije = zgrada;
+informacije.info();
+Console.WriteLine("Količina: " + građevina.Kolicina);   
 
-Console.WriteLine(auto.Marka);
-Console.WriteLine(auto.Baterija);
 
-auto.Pokreni();
-
-public class Automobil
+public interface IInformacije
 {
-    public string Marka { get; set; } = "";
-
-    public virtual void Pokreni()
-    {
-        Console.WriteLine("Pokrećem motor.");
-    }
+    void info();
 }
-
-public class ElektricniAutomobil : Automobil
+class Građevina : IInformacije
 {
-    public int Baterija { get; set; } = 100;
-
-    public override void Pokreni()
+    public double cijena = 10000;
+    private int _kolicina = 1;
+    public int Kolicina
     {
-        Console.WriteLine("Pokrećem auto na struju");
+        get { return _kolicina; }
+    }
+    public virtual void info()
+    {
+        Console.WriteLine("Cijena: " + cijena);
+    }
+
+}
+class Zgrada : Građevina
+{
+    public string Adresa { get; set; }
+    public override void info()
+    {
+        Console.WriteLine("Adresa: " + Adresa);
     }
 }
 
