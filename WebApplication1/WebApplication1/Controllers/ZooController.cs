@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using WebApplication1.Models;
+using Zoo.model;
 using System.Collections.Generic;
 using System.Linq;
+using Zoo.service;
 
 namespace WebApplication1.Controllers
 {
@@ -9,25 +10,24 @@ namespace WebApplication1.Controllers
     [Route("api/zoo")]
     public class ZooController : ControllerBase
     {
-        private static readonly List<Animal> animals = new List<Animal>
-        {
-            new Animal{Id = 1, Name = "Mihael", Species = "Lion", Age = 1},
-            new Animal{Id = 2, Name = "Crni", Species = "Lion", Age = 5},
-            new Animal{Id = 3, Name = "Beli", Species = "Tiger", Age = 2},
-            new Animal{Id = 4, Name = "Mićo", Species = "Lion", Age = 8}
-        };
+        private readonly IAnimalService _service;
 
-        private static int nextId = 5;
+        public ZooController(IAnimalService service)
+        {
+            _service = service;
+        }
 
         [HttpGet]
         public IActionResult GetAll()
         {
+            var animals = _service.GetAll();
             return Ok(animals);
         }
+
         [HttpGet("{id:int}")]
             public IActionResult GetId(int id)
         {
-            var animal = animals.FirstOrDefault(a => a.Id == id);
+            var animal = _service.GetById(id);
             if (animal == null)
             {
                 return NotFound("error animal not in system");
@@ -37,29 +37,19 @@ namespace WebApplication1.Controllers
         }
         [HttpGet ("filter")]
             public IActionResult GetFiltered([FromQuery] AnimalFilter filter)
-        {
-            var result = animals.AsEnumerable();
-            if (!string.IsNullOrWhiteSpace(filter.Name))
-            {
-                result = result.Where(a  => a.Name.Contains(filter.Name, StringComparison.OrdinalIgnoreCase));
-            }
-            if (!string.IsNullOrWhiteSpace(filter.Species))
-            {
-                result = result.Where(a => a.Species.Equals(filter.Species, StringComparison.OrdinalIgnoreCase));
-
-            }
-            if (filter.MinAge.HasValue)
-            {
-                result = result.Where(a => a.Age >= filter.MinAge.Value);
-
-            }
-            return Ok(result.ToList());
+        { 
+            var animals = _service.GetFiltered(filter);
+            
+            return Ok(animals);
         }
         [HttpPost]
         public IActionResult Add([FromBody] Animal animal)
         {
-            animal.Id = nextId++;
-            animals.Add(animal);
+            var error = _service.Add(animal);
+
+            if (error != null) { 
+                return BadRequest(error);
+            }
 
             return StatusCode(201, animal);
         }
@@ -67,28 +57,29 @@ namespace WebApplication1.Controllers
         [HttpPut("{id:int}")]
         public IActionResult Update(int id, [FromBody] Animal updatedAnimal)
         {
-            var animal = animals.FirstOrDefault(a => a.Id == id);
+            var result = _service.Update(id, updatedAnimal);
 
-            if (animal == null)
+            if (result.Error != null)
             {
-                return NotFound("Error animal not found");
+                return BadRequest(result.Error);
             }
 
-            animal.Name = updatedAnimal.Name;
+            if (result.Animal == null)
+            {
+                return NotFound("error animal not found");
+            }
 
-            return Ok(animal);
+            return Ok(result.Animal);
         }
         [HttpDelete("{id:int}")]
         public IActionResult Delete(int id)
         {
-            var animal = animals.FirstOrDefault(a => a.Id == id);
+            var deleted = _service.Delete(id);
 
-            if (animal == null)
+            if (!deleted)
             {
-                return NotFound("Životinja nije pronađena.");
+                return NotFound("error animal not found");
             }
-
-            animals.Remove(animal);
 
             return NoContent();
         }

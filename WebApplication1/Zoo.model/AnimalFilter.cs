@@ -1,4 +1,4 @@
-﻿namespace WebApplication1.Models
+﻿namespace Zoo.model
 {
     public class AnimalFilter
     {
