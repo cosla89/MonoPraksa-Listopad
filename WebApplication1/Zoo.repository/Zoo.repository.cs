@@ -4,88 +4,173 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Zoo.model;
+using Npgsql;
+using System.Xml.Linq;
 
 namespace Zoo.repository
 {
     public class AnimalRepository : IAnimalRepository
     {
-        private readonly List<Animal> animals = new List<Animal>
+
+        private readonly NpgsqlDataSource _dataSource;
+
+        public AnimalRepository(NpgsqlDataSource dataSource)
         {
-            new Animal{Id = 1, Name = "Mihael", Species = "Lion", Age = 1},
-            new Animal{Id = 2, Name = "Crni", Species = "Lion", Age = 5},
-            new Animal{Id = 3, Name = "Beli", Species = "Tiger", Age = 2},
-            new Animal{Id = 4, Name = "Mićo", Species = "Lion", Age = 8}
-        };
+            _dataSource = dataSource;
+        }
+
+        
         public List<Animal> GetAll()      
         {
-            return new List<Animal>(animals); 
+            var result = new List<Animal>();
+            using var command = _dataSource.CreateCommand(
+        "SELECT id, name, species, age FROM animals ORDER BY id");
+
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                var animal = new Animal
+                {
+                    Id = reader.GetInt32(0),
+                    Name = reader.GetString(1),
+                    Species = reader.GetString(2),
+                    Age = reader.GetInt32(3)
+                };
+
+                result.Add(animal);
+            }
+            return result;
         }
         public Animal? GetById(int id)
         {
-            return animals.FirstOrDefault(a => a.Id == id);
+            using var command = _dataSource.CreateCommand(
+                "SELECT id, name, species, age FROM animals WHERE id = @id");
 
-        }
+            command.Parameters.AddWithValue("id", id);
 
-        public List<Animal> GetFiltered(AnimalFilter filter)
-        {
-            var result = animals.AsEnumerable();
+            using var reader = command.ExecuteReader();
 
-            if (!string.IsNullOrWhiteSpace(filter.Name))
-            {
-                result = result.Where(a =>
-                    a.Name.Contains(
-                        filter.Name,
-                        StringComparison.OrdinalIgnoreCase));
-            }
-
-            if (!string.IsNullOrWhiteSpace(filter.Species))
-            {
-                result = result.Where(a =>
-                    a.Species.Equals(
-                        filter.Species,
-                        StringComparison.OrdinalIgnoreCase));
-            }
-
-            if (filter.MinAge.HasValue)
-            {
-                result = result.Where(a => a.Age >= filter.MinAge.Value);
-            }          
-            return result.ToList();
-        }
-        private int nextId = 5;
-        public void Add(Animal animal)
-        {
-            animal.Id = nextId++;
-            animals.Add(animal);
-        } 
-
-        public Animal? Update(int id, Animal updatedAnimal)
-        {
-            var animal = animals.FirstOrDefault(a => a.Id == id);
-
-            if (animal == null)
+            if (!reader.Read())
             {
                 return null;
             }
 
-            animal.Name = updatedAnimal.Name;
-            animal.Species = updatedAnimal.Species;
-            animal.Age = updatedAnimal.Age;
+            return new Animal
+            {
+                Id = reader.GetInt32(0),
+                Name = reader.GetString(1),
+                Species = reader.GetString(2),
+                Age = reader.GetInt32(3)
+            };
+        }
 
-            return animal;
+        public List<Animal> GetFiltered(AnimalFilter filter)
+        {
+            var result = new List<Animal>();
+
+            using var command = _dataSource.CreateCommand(
+                "SELECT id, name, species, age FROM animals WHERE TRUE");
+
+            if (!string.IsNullOrWhiteSpace(filter.Name))
+            {
+                command.CommandText +=
+                    " AND strpos(lower(name), lower(@name)) > 0";
+
+                command.Parameters.AddWithValue("name", filter.Name);
+            }
+
+            if (!string.IsNullOrWhiteSpace(filter.Species))
+            {
+                command.CommandText +=
+                    " AND lower(species) = lower(@species)";
+
+                command.Parameters.AddWithValue("species", filter.Species);
+            }
+
+            if (filter.MinAge.HasValue)
+            {
+                command.CommandText += " AND age >= @minAge";
+
+                command.Parameters.AddWithValue(
+                    "minAge", filter.MinAge.Value);
+            }
+
+            command.CommandText += " ORDER BY id";
+
+            using var reader = command.ExecuteReader();
+
+            while (reader.Read())
+            {
+                var animal = new Animal
+                {
+                    Id = reader.GetInt32(0),
+                    Name = reader.GetString(1),
+                    Species = reader.GetString(2),
+                    Age = reader.GetInt32(3)
+                };
+
+                result.Add(animal);
+            }
+
+            return result;
+        }
+      
+        public void Add(Animal animal)
+        {
+            using var command = _dataSource.CreateCommand(
+                @"INSERT INTO animals (name, species, age)
+          VALUES (@name, @species, @age)
+          RETURNING id");
+
+            command.Parameters.AddWithValue("name", animal.Name);
+            command.Parameters.AddWithValue("species", animal.Species);
+            command.Parameters.AddWithValue("age", animal.Age);
+
+            var newId = command.ExecuteScalar();
+
+            animal.Id = (int)newId!;
+        }
+
+        public Animal? Update(int id, Animal updatedAnimal)
+        {
+            using var command = _dataSource.CreateCommand(
+                @"UPDATE animals
+          SET name = @name,
+              species = @species,
+              age = @age
+          WHERE id = @id
+          RETURNING id, name, species, age");
+
+            command.Parameters.AddWithValue("id", id);
+            command.Parameters.AddWithValue("name", updatedAnimal.Name);
+            command.Parameters.AddWithValue("species", updatedAnimal.Species);
+            command.Parameters.AddWithValue("age", updatedAnimal.Age);
+
+            using var reader = command.ExecuteReader();
+
+            if (!reader.Read())
+            {
+                return null;
+            }
+
+            return new Animal
+            {
+                Id = reader.GetInt32(0),
+                Name = reader.GetString(1),
+                Species = reader.GetString(2),
+                Age = reader.GetInt32(3)
+            };
         }
         public bool Delete(int id)
         {
-            var animal = animals.FirstOrDefault(a => a.Id == id);
+            using var command = _dataSource.CreateCommand(
+                "DELETE FROM animals WHERE id = @id");
 
-            if (animal == null)
-            {
-                return false;
-            }
+            command.Parameters.AddWithValue("id", id);
 
-            animals.Remove(animal);
+            var affectedRows = command.ExecuteNonQuery();
 
-            return true;
+            return affectedRows > 0;
         }
     }
 }
