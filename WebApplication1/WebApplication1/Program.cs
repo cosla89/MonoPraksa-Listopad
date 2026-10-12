@@ -13,7 +13,6 @@ var connectionString =
     builder.Configuration.GetConnectionString("ZooDatabase")
     ?? throw new InvalidOperationException(
         "Missing connection to database");
-
 // Add services to the container.
 
 builder.Services.AddControllers();
@@ -21,7 +20,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddSingleton<IAnimalRepository, AnimalRepository>();
+builder.Services.AddScoped<IAnimalRepository, AnimalRepository>();
 builder.Services.AddScoped<IAnimalService, AnimalService>();
 builder.Services.AddTransient<IAnimalValidator, AnimalValidator>();
 builder.Services.AddSingleton<NpgsqlDataSource>(_ =>
