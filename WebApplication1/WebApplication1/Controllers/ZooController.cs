@@ -3,11 +3,13 @@ using Zoo.model;
 using System.Collections.Generic;
 using System.Linq;
 using Zoo.service;
+using Microsoft.AspNetCore.Authorization;
 
 namespace WebApplication1.Controllers
 {
     [ApiController]
     [Route("api/zoo")]
+    [Authorize]
     public class ZooController : ControllerBase
     {
         private readonly IAnimalService _service;
@@ -42,6 +44,7 @@ namespace WebApplication1.Controllers
             
             return Ok(animals);
         }
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public IActionResult Add([FromBody] Animal animal)
         {
@@ -54,6 +57,7 @@ namespace WebApplication1.Controllers
             return StatusCode(201, animal);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id:int}")]
         public IActionResult Update(int id, [FromBody] Animal updatedAnimal)
         {
@@ -71,6 +75,8 @@ namespace WebApplication1.Controllers
 
             return Ok(result.Animal);
         }
+
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id:int}")]
         public IActionResult Delete(int id)
         {
