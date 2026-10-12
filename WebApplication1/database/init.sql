@@ -1,0 +1,19 @@
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS public.animals (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    species VARCHAR(100) NOT NULL,
+    age INTEGER NOT NULL,
+    CONSTRAINT animals_age_check CHECK (age >= 0)
+);
+
+CREATE TABLE IF NOT EXISTS public.users (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    role VARCHAR(20) NOT NULL DEFAULT 'User',
+    CONSTRAINT users_role_check CHECK (role IN ('User', 'Admin'))
+);
+
+COMMIT;

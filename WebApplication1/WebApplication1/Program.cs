@@ -6,6 +6,9 @@ using Zoo.model;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using WebApplication1.Middleware;
+using Microsoft.EntityFrameworkCore;
+using Zoo.repository.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -80,7 +83,10 @@ builder.Services
     });
 
 builder.Services.AddAuthorization();
+builder.Services.AddDbContext<ZooDbContext>(options =>
+    options.UseNpgsql(connectionString));
 var app = builder.Build();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

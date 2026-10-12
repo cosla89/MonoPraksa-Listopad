@@ -25,7 +25,7 @@ namespace Zoo.service
             _tokenService = tokenService;
         }
 
-        public string? Register(RegisterRequest request)
+        public async Task<string?> RegisterAsync(RegisterRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.Username))
             {
@@ -46,7 +46,7 @@ namespace Zoo.service
                 return "Password needs to be between 10 and 128 char.";
             }
 
-            var existingUser = _userRepository.GetByUsername(username);
+            var existingUser = _userRepository.GetByUsernameAsync(username);
 
             if (existingUser != null)
             {
@@ -56,20 +56,20 @@ namespace Zoo.service
             var user = new User
             {
                 Username = username,
-                Role = "User"
+                Role = RoleNames.User
             };
 
             user.PasswordHash =
                 _passwordHasher.HashPassword(user, request.Password);
 
-            var added = _userRepository.Add(user);
+            var added = await _userRepository.AddAsync(user);
             if (!added)
             {
                 return "Username taken";
             }
             return null;
         }
-        public LoginResponse? Login(LoginRequest request)
+        public async Task<LoginResponse?> LoginAsync(LoginRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.Username)
                 || string.IsNullOrWhiteSpace(request.Password))
@@ -84,7 +84,7 @@ namespace Zoo.service
                 return null;
             }
 
-            var user = _userRepository.GetByUsername(username);
+            var user = await _userRepository.GetByUsernameAsync(username);
 
             if (user == null)
             {

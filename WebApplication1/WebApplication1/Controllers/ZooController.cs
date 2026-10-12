@@ -20,48 +20,53 @@ namespace WebApplication1.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll()
         {
-            var animals = _service.GetAll();
+            var animals = await _service.GetAllAsync();
             return Ok(animals);
         }
 
         [HttpGet("{id:int}")]
-            public IActionResult GetId(int id)
+        public async Task<IActionResult> GetId(int id)
         {
-            var animal = _service.GetById(id);
+            var animal = await _service.GetByIdAsync(id);
+
             if (animal == null)
             {
-                return NotFound("error animal not in system");
+                return NotFound("Animal not found");
             }
-            return Ok(animal);
 
+            return Ok(animal);
         }
-        [HttpGet ("filter")]
-            public IActionResult GetFiltered([FromQuery] AnimalFilter filter)
-        { 
-            var animals = _service.GetFiltered(filter);
-            
+        [HttpGet("filter")]
+        public async Task<IActionResult> GetFiltered(
+            [FromQuery] AnimalFilter filter)
+        {
+            var animals = await _service.GetFilteredAsync(filter);
+
             return Ok(animals);
         }
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = RoleNames.Admin)]
         [HttpPost]
-        public IActionResult Add([FromBody] Animal animal)
+        public async Task<IActionResult> Add([FromBody] Animal animal)
         {
-            var error = _service.Add(animal);
+            var error = await _service.AddAsync(animal);
 
-            if (error != null) { 
+            if (error != null)
+            {
                 return BadRequest(error);
             }
 
             return StatusCode(201, animal);
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = RoleNames.Admin)]
         [HttpPut("{id:int}")]
-        public IActionResult Update(int id, [FromBody] Animal updatedAnimal)
+            public async Task<IActionResult> Update(
+            int id,
+            [FromBody] Animal updatedAnimal)
         {
-            var result = _service.Update(id, updatedAnimal);
+            var result = await _service.UpdateAsync(id, updatedAnimal);
 
             if (result.Error != null)
             {
@@ -70,21 +75,21 @@ namespace WebApplication1.Controllers
 
             if (result.Animal == null)
             {
-                return NotFound("error animal not found");
+                return NotFound("Animal not found");
             }
 
             return Ok(result.Animal);
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = RoleNames.Admin)]
         [HttpDelete("{id:int}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var deleted = _service.Delete(id);
+            var deleted = await _service.DeleteAsync(id);
 
             if (!deleted)
             {
-                return NotFound("error animal not found");
+                return NotFound("Animal not found");
             }
 
             return NoContent();

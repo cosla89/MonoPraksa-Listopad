@@ -9,12 +9,12 @@ namespace Zoo.service
 {
     public interface IAnimalService
     {
-        List<Animal> GetAll();
-        Animal? GetById(int id);
-        List<Animal> GetFiltered(AnimalFilter filter);
-        string? Add(Animal animal);
-        AnimalUpdateResult Update(int id, Animal updatedAnimal);
-        bool Delete(int id);
+        Task<List<Animal>> GetAllAsync();
+        Task<Animal?> GetByIdAsync(int id);
+        Task<List<Animal>> GetFilteredAsync(AnimalFilter filter);
+        Task<string?> AddAsync(Animal animal);
+        Task<AnimalUpdateResult> UpdateAsync(int id, Animal updatedAnimal);
+        Task<bool> DeleteAsync(int id);
     }
 }
 
