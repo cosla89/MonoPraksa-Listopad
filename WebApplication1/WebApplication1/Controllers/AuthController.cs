@@ -18,9 +18,10 @@ namespace WebApplication1.Controllers
 
         [AllowAnonymous]
         [HttpPost("register")]
-        public IActionResult Register([FromBody] RegisterRequest request)
+            public async Task<IActionResult> Register(
+            [FromBody] RegisterRequest request)
         {
-            var error = _authService.Register(request);
+            var error = await _authService.RegisterAsync(request);
 
             if (error != null)
             {
@@ -29,20 +30,21 @@ namespace WebApplication1.Controllers
 
             return StatusCode(201, new
             {
-                message = "User has been added"
+                message = "Korisnik je uspješno registriran."
             });
         }
         [AllowAnonymous]
         [HttpPost("login")]
-        public IActionResult Login([FromBody] LoginRequest request)
+        public async Task<IActionResult> Login(
+    [FromBody] LoginRequest request)
         {
-            var response = _authService.Login(request);
+            var response = await _authService.LoginAsync(request);
 
             if (response == null)
             {
                 return Unauthorized(new
                 {
-                    message = "Wronf username or password."
+                    message = "Neispravno korisničko ime ili lozinka."
                 });
             }
 

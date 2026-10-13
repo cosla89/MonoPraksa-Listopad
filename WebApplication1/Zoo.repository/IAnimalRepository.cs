@@ -9,12 +9,12 @@ namespace Zoo.repository
 {
     public interface IAnimalRepository
     {
-        void Add(Animal animal);
-        List<Animal> GetAll();
-        Animal? GetById(int id);
-        List<Animal> GetFiltered(AnimalFilter filter);
-        Animal? Update(int id, Animal updatedAnimal);
-        bool Delete(int id);
+        Task AddAsync(Animal animal);
+        Task<List<Animal>> GetAllAsync();
+        Task<Animal?> GetByIdAsync(int id);
+        Task<List<Animal>> GetFilteredAsync(AnimalFilter filter);
+        Task<Animal?> UpdateAsync(int id, Animal updatedAnimal);
+        Task<bool> DeleteAsync(int id);
     }
     
 }

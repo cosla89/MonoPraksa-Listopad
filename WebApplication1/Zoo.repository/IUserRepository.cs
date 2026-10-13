@@ -9,8 +9,8 @@ namespace Zoo.repository
 {
     public interface IUserRepository
     {
-        User? GetByUsername (string  username);
-        bool Add(User user);
+        Task<User?> GetByUsernameAsync (string  username);
+        Task<bool> AddAsync(User user);
 
     }
 }

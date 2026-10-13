@@ -6,6 +6,9 @@ using Zoo.model;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using WebApplication1.Middleware;
+using Microsoft.EntityFrameworkCore;
+using Zoo.repository.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,7 +16,6 @@ var connectionString =
     builder.Configuration.GetConnectionString("ZooDatabase")
     ?? throw new InvalidOperationException(
         "Missing connection to database");
-
 // Add services to the container.
 
 builder.Services.AddControllers();
@@ -21,7 +23,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddSingleton<IAnimalRepository, AnimalRepository>();
+builder.Services.AddScoped<IAnimalRepository, AnimalRepository>();
 builder.Services.AddScoped<IAnimalService, AnimalService>();
 builder.Services.AddTransient<IAnimalValidator, AnimalValidator>();
 builder.Services.AddSingleton<NpgsqlDataSource>(_ =>
@@ -81,7 +83,10 @@ builder.Services
     });
 
 builder.Services.AddAuthorization();
+builder.Services.AddDbContext<ZooDbContext>(options =>
+    options.UseNpgsql(connectionString));
 var app = builder.Build();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

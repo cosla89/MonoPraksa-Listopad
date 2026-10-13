@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Zoo.model;
 using Zoo.repository;
 using Zoo.common;
+using Microsoft.Extensions.Logging;
 
 namespace Zoo.service
 {
@@ -14,39 +15,50 @@ namespace Zoo.service
     {
         private readonly IAnimalRepository _repository;
         private readonly IAnimalValidator _validator;
+        private readonly ILogger<AnimalService> _logger;
 
-        public AnimalService(IAnimalRepository repository, IAnimalValidator validator)
+        public AnimalService(IAnimalRepository repository, IAnimalValidator validator, ILogger<AnimalService> logger)
         {
             _repository = repository;
             _validator = validator;
+            _logger = logger;
         }
 
-        public List<Animal> GetAll()
+        public  Task<List<Animal>> GetAllAsync()
         {
-            return _repository.GetAll();
+            return _repository.GetAllAsync();
         }
-        public Animal? GetById(int id)
+        public Task<Animal?> GetByIdAsync(int id)
         {
-            return _repository.GetById(id);
+            return _repository.GetByIdAsync(id);
         }
-        public List<Animal> GetFiltered(AnimalFilter filter)
+        public Task<List<Animal>> GetFilteredAsync(AnimalFilter filter)
         {
-            return _repository.GetFiltered(filter);
+            return _repository.GetFilteredAsync(filter);
         }
-        public string? Add(Animal animal)
+        public async Task<string?> AddAsync(Animal animal)
         {
             var error = _validator.Validate(animal);
 
             if (error != null)
             {
+                _logger.LogWarning(
+                    "Error wrong ifnormation");
+
                 return error;
             }
 
-            _repository.Add(animal);
+            await _repository.AddAsync(animal);
+
+            _logger.LogInformation(
+                "Animal with ID {AnimalId} added",
+                animal.Id);
 
             return null;
         }
-        public AnimalUpdateResult Update(int id, Animal updatedAnimal)
+        public async Task<AnimalUpdateResult> UpdateAsync(
+            int id,
+            Animal updatedAnimal)
         {
             var error = _validator.Validate(updatedAnimal);
 
@@ -58,16 +70,16 @@ namespace Zoo.service
                 };
             }
 
-            var animal = _repository.Update(id, updatedAnimal);
+            var animal = await _repository.UpdateAsync(id, updatedAnimal);
 
             return new AnimalUpdateResult
             {
                 Animal = animal
             };
         }
-        public bool Delete(int id)
+        public Task<bool> DeleteAsync(int id)
         {
-            return _repository.Delete(id);
+            return _repository.DeleteAsync(id);
         }
     }
 }

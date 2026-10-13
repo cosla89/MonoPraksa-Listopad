@@ -9,7 +9,7 @@ namespace Zoo.service
 {
     public interface IAuthService
     {
-        string? Register(RegisterRequest request);
-        LoginResponse? Login(LoginRequest request);
+       Task<string?> RegisterAsync(RegisterRequest request);
+        Task<LoginResponse?> LoginAsync(LoginRequest request);
     }
 }

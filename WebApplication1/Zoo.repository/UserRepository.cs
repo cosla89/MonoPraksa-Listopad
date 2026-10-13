@@ -18,18 +18,18 @@ namespace Zoo.repository
             _dataSource = dataSource;
         }
 
-        public User? GetByUsername(string username)
+        public async Task<User?> GetByUsernameAsync(string username)
         {
-            using var command = _dataSource.CreateCommand(
+            await using var command = _dataSource.CreateCommand(
                 @"SELECT id, username, password_hash, role
-                  FROM users
-                  WHERE username = @username");
+          FROM users
+          WHERE username = @username");
 
             command.Parameters.AddWithValue("username", username);
 
-            using var reader = command.ExecuteReader();
+            await using var reader = await command.ExecuteReaderAsync();
 
-            if (!reader.Read())
+            if (!await reader.ReadAsync())
             {
                 return null;
             }
@@ -41,26 +41,28 @@ namespace Zoo.repository
                 PasswordHash = reader.GetString(2),
                 Role = reader.GetString(3)
             };
-
         }
-        public bool Add(User user)
+        public async Task<bool> AddAsync(User user)
         {
-            using var command = _dataSource.CreateCommand(
+            await using var command = _dataSource.CreateCommand(
                 @"INSERT INTO users (username, password_hash, role)
           VALUES (@username, @passwordHash, @role)
-            ON CONFLICT (username) DO NOTHING RETURNING id");
+          ON CONFLICT (username) DO NOTHING
+          RETURNING id");
 
             command.Parameters.AddWithValue("username", user.Username);
             command.Parameters.AddWithValue("passwordHash", user.PasswordHash);
             command.Parameters.AddWithValue("role", user.Role);
 
-            var newId = command.ExecuteScalar();
+            var newId = await command.ExecuteScalarAsync();
 
             if (newId == null)
             {
                 return false;
             }
+
             user.Id = (int)newId;
+
             return true;
         }
     }

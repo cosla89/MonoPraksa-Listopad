@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Zoo.model;
 using Npgsql;
 using System.Xml.Linq;
+using Microsoft.EntityFrameworkCore;
+using Zoo.repository.Data;
 
 namespace Zoo.repository
 {
@@ -13,44 +15,34 @@ namespace Zoo.repository
     {
 
         private readonly NpgsqlDataSource _dataSource;
+        private readonly ZooDbContext _context;
 
-        public AnimalRepository(NpgsqlDataSource dataSource)
+        public AnimalRepository(NpgsqlDataSource dataSource, ZooDbContext context)
         {
             _dataSource = dataSource;
+            _context = context;
         }
 
-        
-        public List<Animal> GetAll()      
+
+        public Task<List<Animal>> GetAllAsync()
         {
-            var result = new List<Animal>();
-            using var command = _dataSource.CreateCommand(
-        "SELECT id, name, species, age FROM animals ORDER BY id");
-
-            using var reader = command.ExecuteReader();
-            while (reader.Read())
-            {
-                var animal = new Animal
-                {
-                    Id = reader.GetInt32(0),
-                    Name = reader.GetString(1),
-                    Species = reader.GetString(2),
-                    Age = reader.GetInt32(3)
-                };
-
-                result.Add(animal);
-            }
-            return result;
+            return _context.Animals
+                .AsNoTracking()
+                .OrderBy(a => a.Id)
+                .ToListAsync();
         }
-        public Animal? GetById(int id)
+        public async Task<Animal?> GetByIdAsync(int id)
         {
-            using var command = _dataSource.CreateCommand(
-                "SELECT id, name, species, age FROM animals WHERE id = @id");
+            await using var command = _dataSource.CreateCommand(
+                @"SELECT id, name, species, age
+          FROM animals
+          WHERE id = @id");
 
             command.Parameters.AddWithValue("id", id);
 
-            using var reader = command.ExecuteReader();
+            await using var reader = await command.ExecuteReaderAsync();
 
-            if (!reader.Read())
+            if (!await reader.ReadAsync())
             {
                 return null;
             }
@@ -63,12 +55,11 @@ namespace Zoo.repository
                 Age = reader.GetInt32(3)
             };
         }
-
-        public List<Animal> GetFiltered(AnimalFilter filter)
+        public async Task<List<Animal>> GetFilteredAsync(AnimalFilter filter)
         {
             var result = new List<Animal>();
 
-            using var command = _dataSource.CreateCommand(
+            await using var command = _dataSource.CreateCommand(
                 "SELECT id, name, species, age FROM animals WHERE TRUE");
 
             if (!string.IsNullOrWhiteSpace(filter.Name))
@@ -97,9 +88,9 @@ namespace Zoo.repository
 
             command.CommandText += " ORDER BY id";
 
-            using var reader = command.ExecuteReader();
+            await using var reader = await command.ExecuteReaderAsync();
 
-            while (reader.Read())
+            while (await reader.ReadAsync())
             {
                 var animal = new Animal
                 {
@@ -114,10 +105,10 @@ namespace Zoo.repository
 
             return result;
         }
-      
-        public void Add(Animal animal)
+
+        public async Task AddAsync(Animal animal)
         {
-            using var command = _dataSource.CreateCommand(
+            await using var command = _dataSource.CreateCommand(
                 @"INSERT INTO animals (name, species, age)
           VALUES (@name, @species, @age)
           RETURNING id");
@@ -126,14 +117,14 @@ namespace Zoo.repository
             command.Parameters.AddWithValue("species", animal.Species);
             command.Parameters.AddWithValue("age", animal.Age);
 
-            var newId = command.ExecuteScalar();
+            var newId = await command.ExecuteScalarAsync();
 
             animal.Id = (int)newId!;
         }
 
-        public Animal? Update(int id, Animal updatedAnimal)
+        public async Task<Animal?> UpdateAsync(int id, Animal updatedAnimal)
         {
-            using var command = _dataSource.CreateCommand(
+            await using var command = _dataSource.CreateCommand(
                 @"UPDATE animals
           SET name = @name,
               species = @species,
@@ -146,9 +137,9 @@ namespace Zoo.repository
             command.Parameters.AddWithValue("species", updatedAnimal.Species);
             command.Parameters.AddWithValue("age", updatedAnimal.Age);
 
-            using var reader = command.ExecuteReader();
+            await using var reader = await command.ExecuteReaderAsync();
 
-            if (!reader.Read())
+            if (!await reader.ReadAsync())
             {
                 return null;
             }
@@ -161,14 +152,14 @@ namespace Zoo.repository
                 Age = reader.GetInt32(3)
             };
         }
-        public bool Delete(int id)
+        public async Task<bool> DeleteAsync(int id)
         {
-            using var command = _dataSource.CreateCommand(
+            await using var command = _dataSource.CreateCommand(
                 "DELETE FROM animals WHERE id = @id");
 
             command.Parameters.AddWithValue("id", id);
 
-            var affectedRows = command.ExecuteNonQuery();
+            var affectedRows = await command.ExecuteNonQueryAsync();
 
             return affectedRows > 0;
         }
