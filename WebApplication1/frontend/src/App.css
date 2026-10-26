@@ -154,3 +154,40 @@
   background: #fff0f0;
   color: #8b2020;
 }
+
+.animal-actions {
+  flex-wrap: wrap;
+}
+
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.page-button {
+  min-width: 44px;
+}
+
+.page-button[aria-current='page'] {
+  background-color: #173c24;
+  outline: 3px solid #a5c99b;
+  outline-offset: 2px;
+}
+
+.page-summary {
+  flex-basis: 100%;
+  text-align: center;
+  margin: 8px 0 0;
+}
+
+.danger-button {
+  background-color: #b32a2a;
+}
+
+.danger-button:hover:not(:disabled) {
+  background-color: #7d1f1f;
+}

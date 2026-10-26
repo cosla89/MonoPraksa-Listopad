@@ -46,7 +46,12 @@ namespace Zoo.service
                 return "Password needs to be between 10 and 128 char.";
             }
 
-            var existingUser = _userRepository.GetByUsernameAsync(username);
+            var existingUser = await _userRepository.GetByUsernameAsync(username);
+
+            if (existingUser != null)
+            {
+                return "Username taken.";
+            }
 
             if (existingUser != null)
             {
