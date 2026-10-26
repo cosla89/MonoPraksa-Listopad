@@ -1,0 +1,156 @@
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 6%;
+  background-color: #245438;
+  color: white;
+}
+
+.logo {
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.home {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 60px 24px;
+}
+
+.subtitle {
+  color: #47734e;
+  font-weight: bold;
+}
+
+.home h1 {
+  font-size: clamp(32px, 6vw, 56px);
+  margin: 16px 0;
+}
+
+.home p {
+  line-height: 1.7;
+}
+
+.info-card {
+  margin-top: 40px;
+  padding: 28px;
+  background-color: white;
+  border: 1px solid #dce6d7;
+  border-radius: 16px;
+}
+
+.site-footer {
+  padding: 24px;
+  text-align: center;
+  color: #536858;
+}
+
+.site-header .logo {
+  color: white;
+  text-decoration: none;
+}
+
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.site-nav a {
+  color: white;
+  text-decoration: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+}
+
+.site-nav a:hover {
+  background-color: #346c49;
+}
+
+.site-nav a.active {
+  background-color: white;
+  color: #245438;
+}
+
+.site-nav a:focus-visible,
+.logo:focus-visible {
+  outline: 3px solid #f5d76e;
+  outline-offset: 4px;
+}
+
+.login-form {
+  display: grid;
+  gap: 12px;
+  max-width: 400px;
+}
+
+.login-form label {
+  font-weight: bold;
+}
+
+.login-form input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #8b9d8b;
+  border-radius: 8px;
+  background: white;
+  color: #243528;
+}
+
+.zoo-button {
+  padding: 12px 18px;
+  border: none;
+  border-radius: 8px;
+  background: #245438;
+  color: white;
+  cursor: pointer;
+}
+
+.zoo-button:hover:not(:disabled) {
+  background: #346c49;
+}
+
+.zoo-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.login-form input:focus-visible,
+.zoo-button:focus-visible {
+  outline: 3px solid #bd8617;
+  outline-offset: 3px;
+}
+
+.animal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 24px 0;
+}
+
+.animal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.animal-card {
+  padding: 24px;
+  border: 1px solid #dce6d7;
+  border-radius: 16px;
+  background: white;
+}
+
+.animal-card h2 {
+  margin-top: 0;
+}
+
+.error-message {
+  padding: 14px;
+  border: 1px solid #d99393;
+  border-radius: 8px;
+  background: #fff0f0;
+  color: #8b2020;
+}
