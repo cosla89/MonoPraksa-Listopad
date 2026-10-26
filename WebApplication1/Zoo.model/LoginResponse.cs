@@ -11,5 +11,7 @@ namespace Zoo.model
         public string Token { get; set; } = "";
 
         public DateTime ExpiresAtUtc { get; set; }
+
+        public string Role { get; set; } = "";
     }
 }

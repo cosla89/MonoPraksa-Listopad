@@ -52,7 +52,8 @@ namespace Zoo.service
             return new LoginResponse
             {
                 Token = new JwtSecurityTokenHandler().WriteToken(token),
-                ExpiresAtUtc = expires
+                ExpiresAtUtc = expires,
+                Role = user.Role
             };
         }
     }
