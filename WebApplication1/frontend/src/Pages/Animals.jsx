@@ -26,6 +26,8 @@ export default function Animals() {
   const [page, setPage] = useState(1);
   const [refreshVersion, setRefreshVersion] = useState(0);
   const [editingAnimal, setEditingAnimal] = useState(null);
+  const [searchInput, setSearchInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const isAdmin = role === 'Admin';
 
@@ -54,6 +56,8 @@ export default function Animals() {
     setEditingAnimal(null);
     setPage(1);
     setMessage('');
+    setSearchInput('');
+    setSearchQuery('');
   }
 
   function getErrorMessage(err) {
@@ -66,8 +70,8 @@ export default function Animals() {
       : 'An unexpected error occurred.';
   }
 
-  // Dohvat se pokreće nakon prijave, povratka na stranicu
-  // i ručnog osvježavanja popisa.
+  // Dohvat se pokreće nakon prijave, potvrde pretrage
+  // i osvježavanja popisa.
   useEffect(() => {
     if (!token) {
       return;
@@ -80,7 +84,11 @@ export default function Animals() {
       setError('');
 
       try {
-        const response = await fetch('/api/zoo', {
+        const url = searchQuery
+          ? `/api/zoo/filter?${new URLSearchParams({ name: searchQuery })}`
+          : '/api/zoo';
+
+        const response = await fetch(url, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -128,7 +136,7 @@ export default function Animals() {
     fetchAnimals();
 
     return () => controller.abort();
-  }, [token, refreshVersion]);
+  }, [token, refreshVersion, searchQuery]);
 
   async function handleLogin(event) {
     event.preventDefault();
@@ -186,6 +194,23 @@ export default function Animals() {
   }
 
   function handleRefresh() {
+    setRefreshVersion((value) => value + 1);
+  }
+
+  function handleSearch(event) {
+    event.preventDefault();
+
+    if (loading || busy) {
+      return;
+    }
+
+    setSearchQuery(searchInput.trim());
+    setPage(1);
+    setEditingAnimal(null);
+    setError('');
+    setMessage('');
+    setLoaded(false);
+    setAnimals([]);
     setRefreshVersion((value) => value + 1);
   }
 
@@ -383,6 +408,40 @@ export default function Animals() {
         </>
       ) : (
         <>
+          <form
+            className="login-form"
+            role="search"
+            onSubmit={handleSearch}
+          >
+            <label htmlFor="animal-search">
+              Pretraži životinje po imenu
+            </label>
+
+            <input
+              id="animal-search"
+              name="animal-search"
+              type="search"
+              placeholder="Upiši ime životinje..."
+              value={searchInput}
+              onChange={(event) => setSearchInput(event.target.value)}
+              disabled={busy}
+              aria-describedby="animal-search-help"
+            />
+
+            <p id="animal-search-help">
+              Pritisni Enter ili Search animal za pretragu.
+              Za sve životinje potvrdi prazno polje.
+            </p>
+
+            <button
+              className="zoo-button"
+              type="submit"
+              disabled={loading || busy}
+            >
+              Search animal
+            </button>
+          </form>
+
           <div className="animal-actions">
             <button
               className="zoo-button"
@@ -403,10 +462,20 @@ export default function Animals() {
 
           {loading && <p role="status">Loading…</p>}
 
-          {loaded && <p>Ukupno životinja: {animals.length}</p>}
+          {loaded && (
+            <p>
+              {searchQuery
+                ? `Rezultati za „${searchQuery}”: ${animals.length}`
+                : `Ukupno životinja: ${animals.length}`}
+            </p>
+          )}
 
           {loaded && animals.length === 0 && (
-            <p>Trenutno nema životinja.</p>
+            <p>
+              {searchQuery
+                ? 'Nema životinja koje odgovaraju pretrazi.'
+                : 'Trenutno nema životinja.'}
+            </p>
           )}
 
           <div className="animal-grid">
